@@ -31,7 +31,7 @@ export default class Game
 
 	update()
 	{
-		this.ship.update();
+		this.ship.update(this.asteroids);
 		for (var i = 0; i < this.asteroids.length; i++)
 			this.asteroids[i].update();
 	}

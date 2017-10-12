@@ -6,8 +6,8 @@ export default class Ship
 	{
 		this.screenWidth = screenWidth;
 		this.screenHeight = screenHeight;
-		this.height = 10;
-		this.width = 6;
+		this.height = 20;
+		this.width = 12;
 		this.x = screenWidth/2;
 		this.y = screenHeight/2;
 		this.angle = 0;
@@ -116,7 +116,7 @@ export default class Ship
 		}
 	}
 
-	update()
+	update(asteroids)
 	{
 		this.handleMovement();
 		if (this.firing)
@@ -135,6 +135,11 @@ export default class Ship
 		for (var i = 0; i < this.projectiles.length; i++) 
 		{
 			this.projectiles[i].update();
+			if (this.projectiles[i].hit(asteroids))
+			{
+
+				console.log('hit');
+			}
 			if (!this.projectiles[i].active)
 				this.projectiles.splice(i, 1);
 		}

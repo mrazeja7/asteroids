@@ -1,12 +1,14 @@
 export default class Asteroid
 {
-	constructor(screenWidth, screenHeight)
+	constructor(screenWidth, screenHeight, x, y, radius, generation, angle)
 	{
 		this.screenWidth = screenWidth;
 		this.screenHeight = screenHeight;
-		this.x = Math.random() * this.screenWidth;
-		this.y = Math.random() * this.screenHeight;
-		this.angle = Math.random()*2*Math.PI;
+		this.x = (x?x:Math.random() * this.screenWidth);
+		this.y = (y?y:Math.random() * this.screenHeight);
+		this.generation = (generation?generation:1);
+		this.radius = (radius?radius:60);
+		this.angle = (angle?angle:Math.random()*2*Math.PI);
 		this.mass = Math.random();
 		this.velocity = {x:Math.cos(this.angle)/5, y:Math.sin(this.angle)/5};
 		this.shape = []; 
@@ -14,8 +16,8 @@ export default class Asteroid
 		for (var i = 0; i < edgeCount; i++) 
 		{
 			var a = 2*Math.PI * i/edgeCount;
-			var x = Math.cos(a) * Math.random()*50;
-			var y = Math.sin(a) * Math.random()*50;
+			var x = Math.cos(a) * Math.random() * this.radius;
+			var y = Math.sin(a) * Math.random() * this.radius;
 			this.shape.push({x: x, y: y});
 		}
 	}

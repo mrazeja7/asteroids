@@ -1,3 +1,5 @@
+import Projectile from './projectile'
+
 export default class Ship
 {
 	constructor(screenWidth, screenHeight)
@@ -17,44 +19,39 @@ export default class Ship
 
 		this.accelerating = false;
 		this.braking = false;
+
+		this.projectiles = [];
+		this.canFire = true;
 	}
 
 	handleKeyDown(event)
 	{
 		event.preventDefault();
 		var key = event.key;
-		//console.log(key);
 	    switch(key)
 	    {
 	    	case ' ':
-	    		this.fire();
-	    		break;
+				this.firing = true;
+				break;
 	      	case 'ArrowLeft':
 	      	case 'a':
 		        this.angularSpeed = -Math.PI/100;
-		        console.log('left');
+		        //console.log('left');
 		        break;
 	      	case 'ArrowRight':
 	      	case 'd':
 		        this.angularSpeed = Math.PI/100;
-		        console.log('right');
+		        //console.log('right');
 		        break;
 		    case 'ArrowUp':
 	      	case 'w':
-	      		//if (!this.accelerating)
-	      		{
-	      			this.accelerating = true;
-	      			
-					console.log('forwards');
-				}		        
-		        break;
+      			this.accelerating = true;
+      			//console.log('forwards');
+			    break;
 		    case 'ArrowDown':
 	      	case 's':
-	      		//if (!this.braking)
-	      		{
-	      			this.braking = true;
-		        	console.log('backwards');
-		        }
+      			this.braking = true;
+	        	//console.log('backwards');
 		        break;
 	      	default:
 	        	return;
@@ -71,15 +68,18 @@ export default class Ship
 			case 'ArrowRight':
 			case 'd':
 				this.angularSpeed = 0;				
-				return;
+				break;
 			case 'ArrowUp':
 			case 'w':
 				this.accelerating = false;
-				return;
+				break;
 			case 'ArrowDown':
 			case 's':
 				this.braking = false;
-				return;
+				break;
+			case ' ':
+				this.firing = false;
+				break;
 			default:
 				return;
 	    }
@@ -104,12 +104,23 @@ export default class Ship
 
 	fire()
 	{
-
+		// limits the fire rate to 5/second. The game looks really good if you disable this.
+		if (this.canFire)
+		{
+			this.canFire = false;
+			this.projectiles.push(new Projectile(this.x, this.y, this.angle));
+			setTimeout(function() 
+	        {
+	        	this.canFire = true;
+			}.bind(this), 200);	
+		}
 	}
 
 	update()
 	{
 		this.handleMovement();
+		if (this.firing)
+			this.fire();
 
 		// out of bounds
 		this.x += this.screenWidth; // we don't want a negative value
@@ -120,6 +131,13 @@ export default class Ship
 		//slight deceleration (friction?)
 		this.velocity.x *= 0.999;
 		this.velocity.y *= 0.999;
+
+		for (var i = 0; i < this.projectiles.length; i++) 
+		{
+			this.projectiles[i].update();
+			if (!this.projectiles[i].active)
+				this.projectiles.splice(i, 1);
+		}
 	}
 
 	render(ctx)
@@ -135,5 +153,9 @@ export default class Ship
 		ctx.closePath();
 		ctx.stroke();
 		ctx.restore();
+
+		for (var i = 0; i < this.projectiles.length; i++) {
+			this.projectiles[i].render(ctx);
+		}		
 	}
 }

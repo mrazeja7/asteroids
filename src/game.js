@@ -34,7 +34,6 @@ export default class Game
 		this.ship.update();
 		for (var i = 0; i < this.asteroids.length; i++)
 			this.asteroids[i].update();
-
 	}
 
 	render()
@@ -42,10 +41,10 @@ export default class Game
 		this.ctx.save();
 		this.ctx.fillStyle = 'black';
 		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+		this.ctx.restore();
 		this.ship.render(this.ctx);
 		for (var i = 0; i < this.asteroids.length; i++)
-			this.asteroids[i].render(this.ctx);
-		this.ctx.restore();
+			this.asteroids[i].render(this.ctx);		
 	}
 
 	loop()

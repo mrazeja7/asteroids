@@ -7,6 +7,7 @@ export default class Asteroid
 		this.x = Math.random() * this.screenWidth;
 		this.y = Math.random() * this.screenHeight;
 		this.angle = Math.random()*2*Math.PI;
+		this.mass = Math.random();
 		this.velocity = {x:Math.cos(this.angle)/5, y:Math.sin(this.angle)/5};
 		this.shape = []; 
 		var edgeCount = Math.floor(Math.random()*5 + 4);

@@ -118,6 +118,7 @@ export default class Ship
 
 	update(asteroids)
 	{
+		var scoreIncrement = 0;
 		this.handleMovement();
 		if (this.firing)
 			this.fire();
@@ -135,14 +136,17 @@ export default class Ship
 		for (var i = 0; i < this.projectiles.length; i++) 
 		{
 			this.projectiles[i].update();
-			if (this.projectiles[i].hit(asteroids))
+			var hitVal = this.projectiles[i].hit(asteroids)
+			if (hitVal > 0)
 			{
-
 				console.log('hit');
 			}
 			if (!this.projectiles[i].active)
 				this.projectiles.splice(i, 1);
+			scoreIncrement += hitVal;
 		}
+
+		return scoreIncrement;
 	}
 
 	render(ctx)

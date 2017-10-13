@@ -10,6 +10,7 @@ export default class Asteroid
 		this.radius = (radius?radius:60);
 		this.angle = (angle?angle:Math.random()*2*Math.PI);
 		this.mass = Math.random();
+		this.value = 10 * this.generation;
 		this.velocity = {x:Math.cos(this.angle)/5, y:Math.sin(this.angle)/5};
 		this.shape = []; 
 		var edgeCount = Math.floor(Math.random()*5 + 4);

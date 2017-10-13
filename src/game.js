@@ -15,9 +15,15 @@ export default class Game
 		this.ctx = this.canvas.getContext('2d');
 		document.body.appendChild(this.canvas);
 
+		this.init();
+	}
+
+	init(score, lives, asteroidCnt)
+	{
+		this.asteroidCount = (asteroidCnt?asteroidCnt:10);
 		this.asteroids = [];
 		this.projectiles = [];
-		for (var i = 0; i < 10; i++) {
+		for (var i = 0; i < this.asteroidCount; i++) {
 			this.asteroids.push(new Asteroid(this.width, this.height));
 		}
 		this.ship = new Ship(this.width, this.height);
@@ -25,15 +31,24 @@ export default class Game
 		this.update = this.update.bind(this);
 	    this.render = this.render.bind(this);
 	    this.loop = this.loop.bind(this);
+	    this.score = (score?score:0);
+	    this.lives = (lives?lives:3);
 
 	    this.interval = setInterval(this.loop, 10);
 	}
 
 	update()
 	{
-		this.ship.update(this.asteroids);
+		this.score += this.ship.update(this.asteroids);
 		for (var i = 0; i < this.asteroids.length; i++)
 			this.asteroids[i].update();
+
+		// start over, but keep the score
+		if (this.asteroids.length === 0)
+		{
+			clearInterval(this.interval);
+			this.init(this.score,this.lives,this.asteroidCount*1.5)
+		}
 	}
 
 	render()
@@ -45,6 +60,29 @@ export default class Game
 		this.ship.render(this.ctx);
 		for (var i = 0; i < this.asteroids.length; i++)
 			this.asteroids[i].render(this.ctx);		
+
+		// render score
+		this.ctx.save();
+		this.ctx.font = '18px courier';
+		this.ctx.fillStyle = 'white';
+		this.ctx.fillText(('00000' + this.score).slice(-5), 5, this.ship.height + 45);
+		this.ctx.restore();	
+
+		// render remaining lives
+		for (var i = 0; i < this.lives; i++) 
+		{
+			this.ctx.save();
+			this.ctx.strokeStyle = 'white';
+			this.ctx.beginPath();
+			this.ctx.translate((5 + this.ship.width) * (i+1), 25 + this.ship.height/2);
+			//this.ctx.rotate(this.angle + Math.PI/2);
+			this.ctx.moveTo(0, -this.ship.height/2);
+			this.ctx.lineTo(this.ship.width/2, this.ship.height/2);
+			this.ctx.lineTo(-this.ship.width/2, this.ship.height/2);
+			this.ctx.closePath();
+			this.ctx.stroke();
+			this.ctx.restore();
+		}		
 	}
 
 	loop()

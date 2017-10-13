@@ -37,7 +37,7 @@ export default class Projectile
 			if (this.detectCollision(asteroids[i]))
 			{
 				this.active = false;
-				if (asteroids[i].generation == 1)
+				if (asteroids[i].generation === 1)
 				{
 					// new asteroids move 45 degrees outwards
 					var newAsteroid1 = new Asteroid(asteroids[i].screenWidth, asteroids[i].screenHeight,
@@ -48,12 +48,13 @@ export default class Projectile
 					asteroids.push(newAsteroid1);
 					asteroids.push(newAsteroid2);
 				}
+				var score = asteroids[i].value;
 				asteroids.splice(i, 1);
 
-				return true;
+				return score;
 			}
 		}
-		return false;
+		return 0;
 	}
 
 	render(ctx)

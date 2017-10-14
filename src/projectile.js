@@ -39,11 +39,20 @@ export default class Projectile
 				this.active = false;
 				if (asteroids[i].generation === 1)
 				{
-					// new asteroids move 45 degrees outwards
+					// new asteroids move 60 degrees outwards from the projectile angle
+					// new asteroids also spawn some distance apart to prevent them from being stuck together
+					// 
+					var newAngle1 = this.angle - Math.PI/3;
+					var newAngle2 = this.angle + Math.PI/3;
+					var newRadius = asteroids[i].radius/2;
 					var newAsteroid1 = new Asteroid(asteroids[i].screenWidth, asteroids[i].screenHeight,
-												asteroids[i].x, asteroids[i].y, asteroids[i].radius/2, 2, this.angle - Math.PI/4);
+												asteroids[i].x + Math.cos(newAngle1) * (5 + newRadius),
+												asteroids[i].y + Math.sin(newAngle1) * (5 + newRadius),
+												newRadius, 2, newAngle1, asteroids[i].mass/2);
 					var newAsteroid2 = new Asteroid(asteroids[i].screenWidth, asteroids[i].screenHeight,
-												asteroids[i].x, asteroids[i].y, asteroids[i].radius/2, 2, this.angle + Math.PI/4);
+												asteroids[i].x + Math.cos(newAngle2) * (5 + newRadius),
+												asteroids[i].y + Math.sin(newAngle2) * (5 + newRadius),
+												newRadius, 2, newAngle2, asteroids[i].mass/2);
 
 					asteroids.push(newAsteroid1);
 					asteroids.push(newAsteroid2);

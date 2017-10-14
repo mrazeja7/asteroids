@@ -6,8 +6,8 @@ export default class Ship
 	{
 		this.screenWidth = screenWidth;
 		this.screenHeight = screenHeight;
-		this.height = 20;
-		this.width = 12;
+		this.height = 30;
+		this.width = 18;
 		this.x = screenWidth/2;
 		this.y = screenHeight/2;
 		this.angle = 0;
@@ -116,6 +116,22 @@ export default class Ship
 		}
 	}
 
+	detectCollision(asteroid)
+	{
+		var distance = Math.sqrt(Math.pow((this.x - asteroid.x),2) + Math.pow((this.y - asteroid.y),2));
+		return (distance <= asteroid.radius);
+	}
+
+	hit(asteroids)
+	{
+		for (var i = 0; i < asteroids.length; i++) 
+		{
+			if (this.detectCollision(asteroids[i]))
+				return true;
+		}
+		return false;
+	}
+
 	update(asteroids)
 	{
 		var scoreIncrement = 0;
@@ -137,10 +153,6 @@ export default class Ship
 		{
 			this.projectiles[i].update();
 			var hitVal = this.projectiles[i].hit(asteroids)
-			if (hitVal > 0)
-			{
-				console.log('hit');
-			}
 			if (!this.projectiles[i].active)
 				this.projectiles.splice(i, 1);
 			scoreIncrement += hitVal;
@@ -158,9 +170,26 @@ export default class Ship
 		ctx.rotate(this.angle + Math.PI/2);
 		ctx.moveTo(0, -this.height/2);
 		ctx.lineTo(this.width/2, this.height/2);
+		ctx.lineTo(0,this.height/3);
 		ctx.lineTo(-this.width/2, this.height/2);
 		ctx.closePath();
 		ctx.stroke();
+		if (this.accelerating) // draw rocket flames
+		{
+			ctx.fillStyle = 'yellow';
+			ctx.beginPath();
+			ctx.moveTo(0,this.height/3);
+			ctx.lineTo(-this.width/2, this.height*0.75);
+			var flameCnt = 4;
+			for (var i = 0; i < flameCnt; i++) 
+			{
+				ctx.lineTo(-this.width/2 + this.width*((i+1)/flameCnt), this.height*0.75 - ((i+1)%2)*this.height*0.375);
+			}
+			ctx.lineTo(this.width/2, this.height*0.75);
+			ctx.closePath();
+			ctx.fill();
+
+		}
 		ctx.restore();
 
 		for (var i = 0; i < this.projectiles.length; i++) {

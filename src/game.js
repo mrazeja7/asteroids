@@ -63,7 +63,7 @@ export default class Game
 	    this.score = (score?score:0);
 	    this.lives = (lives!=null?lives:3);
 	    this.over = false;
-	    this.displayTooltip = false;
+	    this.displayTooltip = help;
 	    this.level = (level!=null?level:1);
 	    this.newLevel = new Audio('sounds/Powerup90.wav');
 		this.newLevel.load();

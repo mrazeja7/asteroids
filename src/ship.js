@@ -22,6 +22,16 @@ export default class Ship
 
 		this.projectiles = [];
 		this.canFire = true;
+		this.rapidFire = false;
+		this.laser = new Audio('sounds/Laser_Shoot10.wav');
+		this.laser.load();
+		this.laser.volume = 0.1;
+		this.machinegun = new Audio('sounds/machinegun.wav');
+		this.machinegun.load();
+		this.machinegun.volume = 0.2;
+		this.explosion = new Audio('sounds/Explosion34.wav');
+		this.explosion.load();
+		this.explosion.volume = 0.1;
 	}
 
 	handleKeyDown(event)
@@ -36,23 +46,21 @@ export default class Ship
 	      	case 'ArrowLeft':
 	      	case 'a':
 		        this.angularSpeed = -Math.PI/100;
-		        //console.log('left');
 		        break;
 	      	case 'ArrowRight':
 	      	case 'd':
 		        this.angularSpeed = Math.PI/100;
-		        //console.log('right');
 		        break;
 		    case 'ArrowUp':
 	      	case 'w':
       			this.accelerating = true;
-      			//console.log('forwards');
 			    break;
 		    case 'ArrowDown':
 	      	case 's':
       			this.braking = true;
-	        	//console.log('backwards');
 		        break;
+		    case 'f':
+		    	this.rapidFire = !this.rapidFire;
 	      	default:
 	        	return;
 	    }
@@ -104,11 +112,21 @@ export default class Ship
 
 	fire()
 	{
+		if (this.rapidFire)
+		{
+			this.projectiles.push(new Projectile(this.x, this.y, this.angle));
+			// rapid fire is silent until I find a better sound effect
+			/*this.machinegun.currentTime = 0;
+			this.machinegun.play();*/
+			return;
+		}
 		// limits the fire rate to 5/second. The game looks really good if you disable this.
 		if (this.canFire)
 		{
 			this.canFire = false;
 			this.projectiles.push(new Projectile(this.x, this.y, this.angle));
+			this.laser.currentTime = 0;
+			this.laser.play();
 			setTimeout(function() 
 	        {
 	        	this.canFire = true;
@@ -164,7 +182,7 @@ export default class Ship
 	render(ctx)
 	{
 		ctx.save();
-		ctx.strokeStyle = 'white';
+		ctx.strokeStyle = (this.rapidFire?'red':'white');
 		ctx.beginPath();
 		ctx.translate(this.x, this.y);
 		ctx.rotate(this.angle + Math.PI/2);

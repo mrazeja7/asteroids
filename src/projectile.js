@@ -12,6 +12,9 @@ export default class Projectile
 		this.velocity = {x:Math.cos(this.angle)*3, y:Math.sin(this.angle)*3};
 		this.active = true;
 		this.distanceLeft = 500;
+		this.explosion = new Audio('sounds/Explosion31.wav');
+		this.explosion.load();
+		this.explosion.volume = 0.1;
 	}
 
 	update()
@@ -41,7 +44,6 @@ export default class Projectile
 				{
 					// new asteroids move 60 degrees outwards from the projectile angle
 					// new asteroids also spawn some distance apart to prevent them from being stuck together
-					// 
 					var newAngle1 = this.angle - Math.PI/3;
 					var newAngle2 = this.angle + Math.PI/3;
 					var newRadius = asteroids[i].radius/2;
@@ -59,6 +61,7 @@ export default class Projectile
 				}
 				var score = asteroids[i].value;
 				asteroids.splice(i, 1);
+				this.explosion.play();
 
 				return score;
 			}

@@ -14,24 +14,32 @@ export default class Game
 		this.canvas.height = this.height;
 		this.ctx = this.canvas.getContext('2d');
 		document.body.appendChild(this.canvas);
-		/*this.sfx = [new Audio('sounds/kurva.mp3'),new Audio('sounds/past-vedle-pasti-pico.mp3'),new Audio('sounds/to-sou-nervy-ty-pico.mp3'),new Audio('sounds/hajzli-jedni.mp3')];
-		for (var i = 0; i < this.sfx.length; i++) 
-		{
-			this.sfx[i].load();
-			this.sfx[i].volume = 0.2;
-		}*/
 
 		this.init();
 	}
 
-	init(score, lives, asteroidCnt)
+	init(score, lives, asteroidCnt, level)
 	{
-		//console.log('starting new game');
 		this.asteroidCount = (asteroidCnt?asteroidCnt:15);
 		this.asteroids = [];
 		this.projectiles = [];
-		for (var i = 0; i < this.asteroidCount; i++) {
-			this.asteroids.push(new Asteroid(this.width, this.height));
+		for (var i = 0; i < this.asteroidCount; i++) 
+		{
+			// very convoluted way of making sure no asteroids spawn on top of each other
+			var collides = true;
+			while (collides)
+			{
+				collides = false;
+				this.asteroids[i] = new Asteroid(this.width, this.height);
+				for (var j = 0; j < i; j++)
+				{
+					if (this.asteroids[i].detectCollision(this.asteroids[j]))
+					{
+						collides = true;
+						break;
+					}
+				}
+			}
 		}
 		this.ship = new Ship(this.width, this.height);
 
@@ -41,6 +49,7 @@ export default class Game
 	    this.score = (score?score:0);
 	    this.lives = (lives!=null?lives:3);
 	    this.over = false;
+	    this.level = (level!=null?level:1);
 
 	    this.interval = setInterval(this.loop, 10);
 	}
@@ -63,6 +72,38 @@ export default class Game
 		this.ctx.restore();
 	}
 
+	drawExplosion()
+	{
+		var x = this.ship.x;
+		var y = this.ship.y;
+		var colors = ['white', 'yellow', 'orange', 'red'];
+
+		for (var i = 3; i >= 0; i--)
+		{
+			var r = (i+1)*9;
+			this.strokeStar(x, y, r, 7, 0.5, colors[i]);
+		}
+	}
+
+	strokeStar(x, y, radius, count, ratio, color) 
+	{
+	    this.ctx.save();
+	    this.ctx.fillStyle = color;
+	    this.ctx.beginPath();
+	    this.ctx.translate(x, y);
+	    this.ctx.moveTo(0, -radius);
+	    for (var i = 0; i < count; i++) 
+	    {
+	        this.ctx.rotate(Math.PI/count);
+	        this.ctx.lineTo(0, -radius * ratio);
+	        this.ctx.rotate(Math.PI/count);
+	        this.ctx.lineTo(0, -radius);
+	    }
+	    this.ctx.closePath();
+	    this.ctx.fill();
+	    this.ctx.restore();
+	}
+
 	update()
 	{
 		if (this.over)
@@ -74,13 +115,22 @@ export default class Game
 		if (this.ship.hit(this.asteroids))
 		{
 			// game over
+			this.ship.explosion.play();
 			clearInterval(this.interval);
 			//this.sfx[(Math.floor(Math.random()*100))%(this.sfx.length)].play();
 			if (this.lives > 1)
-				this.init(this.score, this.lives-1, 0);
+			{
+				this.over = true;
+				this.drawExplosion();
+				setTimeout(function() 
+		        {
+		        	this.init(this.score, this.lives-1, 0);
+				}.bind(this), 2000);				
+			}
 			else
 			{
 				this.over = true;
+				this.drawExplosion();
 				this.gameOver();
 			}
 			return;
@@ -89,7 +139,7 @@ export default class Game
 		if (this.asteroids.length === 0)
 		{
 			clearInterval(this.interval);
-			this.init(this.score, this.lives, this.asteroidCount*1.5)
+			this.init(this.score, this.lives, this.asteroidCount + 5, this.level + 1)
 		}
 	}
 
@@ -110,7 +160,10 @@ export default class Game
 		this.ctx.font = '20px courier';
 		this.ctx.fillStyle = 'white';
 		var scoreText = ('00000' + this.score).slice(-5);
-		this.ctx.fillText(scoreText , (20 + this.ship.width*4 - this.ctx.measureText(scoreText).width)/2, this.ship.height + 45);
+		this.ctx.fillText(scoreText , (20 + this.ship.width*4 - this.ctx.measureText(scoreText).width)/2, this.ship.height + 50);
+		// render level indicator
+		var level = 'level ' + this.level;
+		this.ctx.fillText(level , (20 + this.ship.width*4 - this.ctx.measureText(level).width)/2, 25);
 		this.ctx.restore();	
 
 		// render remaining lives
@@ -119,7 +172,7 @@ export default class Game
 			this.ctx.save();
 			this.ctx.strokeStyle = 'white';
 			this.ctx.beginPath();
-			this.ctx.translate((5 + this.ship.width) * (i+1), 25 + this.ship.height/2);
+			this.ctx.translate((5 + this.ship.width) * (i+1), 30 + this.ship.height/2);
 			this.ctx.moveTo(0, -this.ship.height/2);
 			this.ctx.lineTo(this.ship.width/2, this.ship.height/2);
 			this.ctx.lineTo(0,this.ship.height/3);
@@ -127,7 +180,7 @@ export default class Game
 			this.ctx.closePath();
 			this.ctx.stroke();
 			this.ctx.restore();
-		}		
+		}
 	}
 
 	loop()

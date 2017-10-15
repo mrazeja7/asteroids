@@ -12,10 +12,7 @@ export default class Ship
 		this.y = screenHeight/2;
 		this.angle = 0;
 		this.angularSpeed = 0;
-		this.velocity = {x: 0, y: 0};
-
-		window.onkeydown = this.handleKeyDown.bind(this);
-		window.onkeyup = this.handleKeyUp.bind(this);
+		this.velocity = {x: 0, y: 0};		
 
 		this.accelerating = false;
 		this.braking = false;
@@ -32,65 +29,6 @@ export default class Ship
 		this.explosion = new Audio('sounds/Explosion34.wav');
 		this.explosion.load();
 		this.explosion.volume = 0.1;
-	}
-
-	handleKeyDown(event)
-	{
-		event.preventDefault();
-		var key = event.key;
-	    switch(key)
-	    {
-	    	case ' ':
-				this.firing = true;
-				break;
-	      	case 'ArrowLeft':
-	      	case 'a':
-		        this.angularSpeed = -Math.PI/100;
-		        break;
-	      	case 'ArrowRight':
-	      	case 'd':
-		        this.angularSpeed = Math.PI/100;
-		        break;
-		    case 'ArrowUp':
-	      	case 'w':
-      			this.accelerating = true;
-			    break;
-		    case 'ArrowDown':
-	      	case 's':
-      			this.braking = true;
-		        break;
-		    case 'f':
-		    	this.rapidFire = !this.rapidFire;
-	      	default:
-	        	return;
-	    }
-	}
-	handleKeyUp(event)
-	{
-		event.preventDefault();
-		var key = event.key;
-		switch(key)
-	    {
-			case 'ArrowLeft':
-			case 'a':
-			case 'ArrowRight':
-			case 'd':
-				this.angularSpeed = 0;				
-				break;
-			case 'ArrowUp':
-			case 'w':
-				this.accelerating = false;
-				break;
-			case 'ArrowDown':
-			case 's':
-				this.braking = false;
-				break;
-			case ' ':
-				this.firing = false;
-				break;
-			default:
-				return;
-	    }
 	}
 
 	handleMovement()

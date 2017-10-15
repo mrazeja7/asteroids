@@ -15,10 +15,12 @@ export default class Asteroid
 		{
 			this.x = Math.random() * this.screenWidth;
 			this.y = Math.random() * this.screenHeight;
-			while (this.x > this.screenWidth*2/5 && this.x < this.screenWidth*3/5)
+			while (this.x > this.screenWidth*2/5 && this.x < this.screenWidth*3/5 && this.y > this.screenHeight*2/5 && this.y < this.screenHeight*3/5)
+			{
 				this.x = Math.random() * this.screenWidth;
-			while (this.y > this.screenHeight*2/5 && this.y < this.screenHeight*3/5)
 				this.y = Math.random() * this.screenHeight;
+			}
+				
 		}
 		else
 		{

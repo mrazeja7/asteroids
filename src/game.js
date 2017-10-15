@@ -14,15 +14,19 @@ export default class Game
 		this.canvas.height = this.height;
 		this.ctx = this.canvas.getContext('2d');
 		document.body.appendChild(this.canvas);
+				
+		this.update = this.update.bind(this);
+	    this.render = this.render.bind(this);
+	    this.loop = this.loop.bind(this);
+	    this.menuLoop = this.menuLoop.bind(this);
 
-		this.init();
+	    this.startMenu();
 	}
 
-	init(score, lives, asteroidCnt, level)
+	generateAsteroids(count)
 	{
-		this.asteroidCount = (asteroidCnt?asteroidCnt:15);
+		this.asteroidCount = count;
 		this.asteroids = [];
-		this.projectiles = [];
 		for (var i = 0; i < this.asteroidCount; i++) 
 		{
 			// very convoluted way of making sure no asteroids spawn on top of each other
@@ -41,15 +45,29 @@ export default class Game
 				}
 			}
 		}
-		this.ship = new Ship(this.width, this.height);
+	}
 
-		this.update = this.update.bind(this);
-	    this.render = this.render.bind(this);
-	    this.loop = this.loop.bind(this);
+	startMenu()
+	{
+		window.onkeydown = this.menuHandler.bind(this);
+		this.generateAsteroids(20);
+		this.interval = setInterval(this.menuLoop, 10);
+	}
+
+	init(score, lives, asteroidCnt, level, help)
+	{
+		this.generateAsteroids(asteroidCnt?asteroidCnt:15);
+		this.projectiles = [];
+		this.ship = new Ship(this.width, this.height);		
+	    
 	    this.score = (score?score:0);
 	    this.lives = (lives!=null?lives:3);
 	    this.over = false;
+	    this.displayTooltip = false;
 	    this.level = (level!=null?level:1);
+	    this.newLevel = new Audio('sounds/Powerup90.wav');
+		this.newLevel.load();
+		this.newLevel.volume = 0.2;
 
 	    this.interval = setInterval(this.loop, 10);
 	}
@@ -104,6 +122,110 @@ export default class Game
 	    this.ctx.restore();
 	}
 
+	menuHandler(event)
+	{
+		event.preventDefault();
+		var key = event.key;
+	    switch(key)
+	    {
+	    	case ' ':
+	    		clearInterval(this.interval);
+	    		window.onkeydown = this.handleKeyDown.bind(this);
+	    		window.onkeyup = this.handleKeyUp.bind(this);
+				this.init();
+				this.displayTooltip = true;
+				return;
+	      	default:
+	      		console.log(key);
+	      		break;
+	    }
+	}
+
+	menuLoop()
+	{
+		for (var i = 0; i < this.asteroids.length; i++)
+			this.asteroids[i].update(this.asteroids);
+
+		this.ctx.save();
+		this.ctx.fillStyle = 'black';
+		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+		this.ctx.restore();
+		for (var i = 0; i < this.asteroids.length; i++)
+			this.asteroids[i].render(this.ctx);
+
+		this.ctx.save();
+		this.ctx.font = '20px courier';
+		this.ctx.fillStyle = 'white';
+		var text = 'Press space to start playing';
+		this.ctx.fillText(text , (this.canvas.width - this.ctx.measureText(text).width)/2, this.canvas.height/2);
+		this.ctx.restore();	
+
+	}
+
+	handleKeyDown(event)
+	{
+		event.preventDefault();
+		var key = event.key;
+	    switch(key)
+	    {
+	    	case ' ':
+				this.ship.firing = true;
+				break;
+	      	case 'ArrowLeft':
+	      	case 'a':
+		        this.ship.angularSpeed = -Math.PI/100;
+		        break;
+	      	case 'ArrowRight':
+	      	case 'd':
+		        this.ship.angularSpeed = Math.PI/100;
+		        break;
+		    case 'ArrowUp':
+	      	case 'w':
+      			this.ship.accelerating = true;
+			    break;
+		    case 'ArrowDown':
+	      	case 's':
+      			this.ship.braking = true;
+		        break;
+		    case 'f':
+		    	this.ship.rapidFire = !this.ship.rapidFire;
+		    	break;
+		    case 'Escape':
+		    	this.displayTooltip = !this.displayTooltip;
+		    	break;
+	      	default:
+	      		console.log(key);
+	      		break;
+	    }
+	}
+	handleKeyUp(event)
+	{
+		event.preventDefault();
+		var key = event.key;
+		switch(key)
+	    {
+			case 'ArrowLeft':
+			case 'a':
+			case 'ArrowRight':
+			case 'd':
+				this.ship.angularSpeed = 0;				
+				break;
+			case 'ArrowUp':
+			case 'w':
+				this.ship.accelerating = false;
+				break;
+			case 'ArrowDown':
+			case 's':
+				this.ship.braking = false;
+				break;
+			case ' ':
+				this.ship.firing = false;
+				break;
+			default:
+				return;
+	    }
+	}
+
 	update()
 	{
 		if (this.over)
@@ -124,14 +246,18 @@ export default class Game
 				this.drawExplosion();
 				setTimeout(function() 
 		        {
-		        	this.init(this.score, this.lives-1, 0);
-				}.bind(this), 2000);				
+		        	this.init(this.score, this.lives-1, this.asteroidCount, this.level, this.displayTooltip);
+				}.bind(this), 2000);
 			}
 			else
 			{
 				this.over = true;
 				this.drawExplosion();
 				this.gameOver();
+				setTimeout(function() 
+		        {
+		        	this.startMenu();
+				}.bind(this), 2000);
 			}
 			return;
 		}
@@ -139,6 +265,7 @@ export default class Game
 		if (this.asteroids.length === 0)
 		{
 			clearInterval(this.interval);
+			this.newLevel.play();
 			this.init(this.score, this.lives, this.asteroidCount + 5, this.level + 1)
 		}
 	}
@@ -147,13 +274,16 @@ export default class Game
 	{
 		if (this.over)
 			return;
+		// render the background
 		this.ctx.save();
 		this.ctx.fillStyle = 'black';
 		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 		this.ctx.restore();
+
 		this.ship.render(this.ctx);
+
 		for (var i = 0; i < this.asteroids.length; i++)
-			this.asteroids[i].render(this.ctx);		
+			this.asteroids[i].render(this.ctx);
 
 		// render score
 		this.ctx.save();
@@ -167,6 +297,14 @@ export default class Game
 		this.ctx.restore();	
 
 		// render remaining lives
+		this.renderLives();
+
+		if (this.displayTooltip)
+			this.renderHelp();
+	}
+
+	renderLives()
+	{
 		for (var i = 0; i < this.lives; i++)
 		{
 			this.ctx.save();
@@ -181,6 +319,21 @@ export default class Game
 			this.ctx.stroke();
 			this.ctx.restore();
 		}
+	}
+
+	renderHelp()
+	{
+		this.ctx.save();
+		this.ctx.font = '16px courier';
+		this.ctx.fillStyle = 'white';
+		this.ctx.globalAlpha = 0.5;
+		var text = ['Press cursor keys or WASD to move','Press space to shoot',
+					'Press F to toggle rapid fire mode (no firing sound)','Press Escape to toggle this tooltip'];
+		for (var i = 0; i < text.length; i++) 
+		{
+			this.ctx.fillText(text[i] , (this.canvas.width - this.ctx.measureText(text[i]).width)/2, this.canvas.height*3/4 + 20*i);
+		}
+		this.ctx.restore();	
 	}
 
 	loop()

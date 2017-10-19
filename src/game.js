@@ -47,13 +47,6 @@ export default class Game
 		}
 	}
 
-	startMenu()
-	{
-		window.onkeydown = this.menuHandler.bind(this);
-		this.generateAsteroids(20);
-		this.interval = setInterval(this.menuLoop, 10);
-	}
-
 	init(score, lives, asteroidCnt, level, help)
 	{
 		this.generateAsteroids(asteroidCnt?asteroidCnt:15);
@@ -83,7 +76,7 @@ export default class Game
 		this.ctx.font = '20px courier';
 		this.ctx.fillStyle = 'white';
 		var text = 'You lost!';
-		this.ctx.fillText(text, (this.canvas.width - this.ctx.measureText(text).width)/2, this.canvas.height/2);3
+		this.ctx.fillText(text, (this.canvas.width - this.ctx.measureText(text).width)/2, this.canvas.height/2);
 		text = 'You scored ' + this.score + ' points.';
 		this.ctx.fillText(text, (this.canvas.width - this.ctx.measureText(text).width)/2, this.canvas.height/2 + 25);
 
@@ -120,6 +113,13 @@ export default class Game
 	    this.ctx.closePath();
 	    this.ctx.fill();
 	    this.ctx.restore();
+	}
+
+	startMenu()
+	{
+		window.onkeydown = this.menuHandler.bind(this);
+		this.generateAsteroids(20);
+		this.interval = setInterval(this.menuLoop, 10);
 	}
 
 	menuHandler(event)
@@ -173,11 +173,11 @@ export default class Game
 				break;
 	      	case 'ArrowLeft':
 	      	case 'a':
-		        this.ship.angularSpeed = -Math.PI/100;
+		        this.ship.rotation = -Math.PI/100;
 		        break;
 	      	case 'ArrowRight':
 	      	case 'd':
-		        this.ship.angularSpeed = Math.PI/100;
+		        this.ship.rotation = Math.PI/100;
 		        break;
 		    case 'ArrowUp':
 	      	case 'w':
@@ -192,6 +192,9 @@ export default class Game
 		    	break;
 		    case 'Escape':
 		    	this.displayTooltip = !this.displayTooltip;
+		    	break;
+		    case 'r':
+		    	this.ship.warp();
 		    	break;
 	      	default:
 	      		console.log(key);
@@ -208,7 +211,7 @@ export default class Game
 			case 'a':
 			case 'ArrowRight':
 			case 'd':
-				this.ship.angularSpeed = 0;				
+				this.ship.rotation = 0;				
 				break;
 			case 'ArrowUp':
 			case 'w':
@@ -239,14 +242,14 @@ export default class Game
 			// game over
 			this.ship.explosion.play();
 			clearInterval(this.interval);
-			//this.sfx[(Math.floor(Math.random()*100))%(this.sfx.length)].play();
 			if (this.lives > 1)
 			{
 				this.over = true;
 				this.drawExplosion();
 				setTimeout(function() 
 		        {
-		        	this.init(this.score, this.lives-1, this.asteroidCount, this.level, this.displayTooltip);
+		        	this.init(this.score, this.lives-1, this.asteroidCount, 
+	        					this.level, this.displayTooltip);
 				}.bind(this), 2000);
 			}
 			else
@@ -257,7 +260,7 @@ export default class Game
 				setTimeout(function() 
 		        {
 		        	this.startMenu();
-				}.bind(this), 2000);
+				}.bind(this), 5000);
 			}
 			return;
 		}
@@ -285,22 +288,28 @@ export default class Game
 		for (var i = 0; i < this.asteroids.length; i++)
 			this.asteroids[i].render(this.ctx);
 
-		// render score
-		this.ctx.save();
-		this.ctx.font = '20px courier';
-		this.ctx.fillStyle = 'white';
-		var scoreText = ('00000' + this.score).slice(-5);
-		this.ctx.fillText(scoreText , (20 + this.ship.width*4 - this.ctx.measureText(scoreText).width)/2, this.ship.height + 50);
-		// render level indicator
-		var level = 'level ' + this.level;
-		this.ctx.fillText(level , (20 + this.ship.width*4 - this.ctx.measureText(level).width)/2, 25);
-		this.ctx.restore();	
+		// render score and level indicator
+		this.renderScore();
 
 		// render remaining lives
 		this.renderLives();
 
 		if (this.displayTooltip)
 			this.renderHelp();
+	}
+
+	renderScore()
+	{
+		this.ctx.save();
+		this.ctx.font = '20px courier';
+		this.ctx.fillStyle = 'white';
+		var scoreText = ('00000' + this.score).slice(-5);
+		this.ctx.fillText(scoreText , (20 + this.ship.width*4 - this.ctx.measureText(scoreText).width)/2, this.ship.height + 50);
+
+		var level = 'level ' + this.level;
+		this.ctx.fillText(level , (20 + this.ship.width*4 - this.ctx.measureText(level).width)/2, 25);
+		this.ctx.restore();	
+
 	}
 
 	renderLives()
@@ -328,11 +337,10 @@ export default class Game
 		this.ctx.fillStyle = 'white';
 		this.ctx.globalAlpha = 0.5;
 		var text = ['Press cursor keys or WASD to move','Press space to shoot',
-					'Press F to toggle rapid fire mode (no firing sound)','Press Escape to toggle this tooltip'];
-		for (var i = 0; i < text.length; i++) 
-		{
+					'Press F to toggle rapid fire mode (no firing sound)','Press R to warp to a random location','Press Escape to toggle this tooltip'];
+		for (var i = 0; i < text.length; i++)
 			this.ctx.fillText(text[i] , (this.canvas.width - this.ctx.measureText(text[i]).width)/2, this.canvas.height*3/4 + 20*i);
-		}
+
 		this.ctx.restore();	
 	}
 

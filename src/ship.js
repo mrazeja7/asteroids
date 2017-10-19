@@ -11,7 +11,7 @@ export default class Ship
 		this.x = screenWidth/2;
 		this.y = screenHeight/2;
 		this.angle = 0;
-		this.angularSpeed = 0;
+		this.rotation = 0;
 		this.velocity = {x: 0, y: 0};		
 
 		this.accelerating = false;
@@ -20,6 +20,13 @@ export default class Ship
 		this.projectiles = [];
 		this.canFire = true;
 		this.rapidFire = false;
+
+		this.prepareSounds();
+		
+	}
+
+	prepareSounds()
+	{
 		this.laser = new Audio('sounds/Laser_Shoot10.wav');
 		this.laser.load();
 		this.laser.volume = 0.1;
@@ -29,11 +36,14 @@ export default class Ship
 		this.explosion = new Audio('sounds/Explosion34.wav');
 		this.explosion.load();
 		this.explosion.volume = 0.1;
+		this.warpSound = new Audio('sounds/Randomize55.wav');
+		this.warpSound.load();
+		this.warpSound.volume = 0.2;
 	}
 
 	handleMovement()
 	{
-	    this.angle += this.angularSpeed;
+	    this.angle += this.rotation;
 	    if (this.accelerating)
 	    {
 	    	this.velocity.x += Math.cos(this.angle)/20;
@@ -58,7 +68,7 @@ export default class Ship
 			this.machinegun.play();*/
 			return;
 		}
-		// limits the fire rate to 5/second. The game looks really good if you disable this.
+		// limits the fire rate to 5/second (unless rapid fire is enabled)
 		if (this.canFire)
 		{
 			this.canFire = false;
@@ -80,12 +90,17 @@ export default class Ship
 
 	hit(asteroids)
 	{
-		for (var i = 0; i < asteroids.length; i++) 
-		{
+		for (var i = 0; i < asteroids.length; i++)
 			if (this.detectCollision(asteroids[i]))
 				return true;
-		}
 		return false;
+	}
+
+	warp()
+	{
+		this.x = Math.random() * this.screenWidth;
+		this.y = Math.random() * this.screenHeight;
+		this.warpSound.play();
 	}
 
 	update(asteroids)
@@ -101,7 +116,7 @@ export default class Ship
 		this.y += this.screenHeight; // we don't want a negative value
 		this.y %= this.screenHeight;
 
-		//slight deceleration (friction?)
+		// very slight deceleration (friction?)
 		this.velocity.x *= 0.999;
 		this.velocity.y *= 0.999;
 
@@ -131,25 +146,29 @@ export default class Ship
 		ctx.closePath();
 		ctx.stroke();
 		if (this.accelerating) // draw rocket flames
-		{
-			ctx.fillStyle = 'yellow';
-			ctx.beginPath();
-			ctx.moveTo(0,this.height/3);
-			ctx.lineTo(-this.width/2, this.height*0.75);
-			var flameCnt = 4;
-			for (var i = 0; i < flameCnt; i++) 
-			{
-				ctx.lineTo(-this.width/2 + this.width*((i+1)/flameCnt), this.height*0.75 - ((i+1)%2)*this.height*0.375);
-			}
-			ctx.lineTo(this.width/2, this.height*0.75);
-			ctx.closePath();
-			ctx.fill();
+			this.renderFlame(ctx);
 
-		}
 		ctx.restore();
 
-		for (var i = 0; i < this.projectiles.length; i++) {
+		for (var i = 0; i < this.projectiles.length; i++)
 			this.projectiles[i].render(ctx);
-		}		
+	}
+
+	renderFlame(ctx)
+	{
+		ctx.fillStyle = 'yellow';
+		ctx.beginPath();
+		ctx.moveTo(0,this.height/3);
+		ctx.lineTo(-this.width/2, this.height*0.75);
+		var flameCnt = 4;
+		for (var i = 0; i < flameCnt; i++) 
+		{
+			ctx.lineTo(-this.width/2 + this.width*((i+1)/flameCnt), 
+						this.height*0.75 - ((i+1)%2)*this.height*0.375);
+		}
+		ctx.lineTo(this.width/2, this.height*0.75);
+		ctx.closePath();
+		ctx.fill();
+
 	}
 }

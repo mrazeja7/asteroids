@@ -11,7 +11,7 @@ export default class Projectile
 		this.height = 12;
 		this.velocity = {x:Math.cos(this.angle)*3, y:Math.sin(this.angle)*3};
 		this.active = true;
-		this.distanceLeft = 500;
+		this.distanceLeft = 1000;
 		this.explosion = new Audio('sounds/Explosion31.wav');
 		this.explosion.load();
 		this.explosion.volume = 0.1;

@@ -1,6 +1,6 @@
 export default class Asteroid
 {
-	constructor(screenWidth, screenHeight, x, y, radius, generation, angle, mass)
+	constructor(screenWidth, screenHeight, x, y, radius, gen, angle, mass)
 	{
 		this.screenWidth = screenWidth;
 		this.screenHeight = screenHeight;
@@ -15,12 +15,12 @@ export default class Asteroid
 		{
 			this.x = Math.random() * this.screenWidth;
 			this.y = Math.random() * this.screenHeight;
-			while (this.x > this.screenWidth*2/5 && this.x < this.screenWidth*3/5 && this.y > this.screenHeight*2/5 && this.y < this.screenHeight*3/5)
+			while (this.x > this.screenWidth*2/5 && this.x < this.screenWidth*3/5 
+				&& this.y > this.screenHeight*2/5 && this.y < this.screenHeight*3/5)
 			{
 				this.x = Math.random() * this.screenWidth;
 				this.y = Math.random() * this.screenHeight;
-			}
-				
+			}				
 		}
 		else
 		{
@@ -28,12 +28,12 @@ export default class Asteroid
 			this.y = y;
 		}
 		
-		this.generation = (generation?generation:1);
+		this.generation = (gen?gen:1);
 		this.radius = (radius?radius:25);
 		this.angle = (angle?angle:Math.random()*2*Math.PI);
 		this.mass = (mass?mass:Math.random());
 		this.value = 10 * this.generation;
-		this.shape = []; 
+		this.shape = [];
 		var edgeCount = Math.floor(Math.random()*5 + 10);
 		for (var i = 0; i < edgeCount; i++) 
 		{
@@ -76,10 +76,9 @@ export default class Asteroid
 		for (var i = asteroids.length - 1; i >= 0; i--) 
 		{
 			if (this === asteroids[i])
-				continue;
+				break;
 			if (this.detectCollision(asteroids[i]))
 			{
-
 				// the asteroids are probably stuck together. They will merge into one, bigger asteroid
 				// this prevents a LOT of thrashing around
 				if (this.stuck(asteroids[i])) 
@@ -121,18 +120,17 @@ export default class Asteroid
 	render(ctx)
 	{
 		ctx.save();
-		//ctx.globalAlpha = this.mass;
 		ctx.strokeStyle = 'orange';
 		ctx.translate(this.x, this.y);
 		ctx.beginPath();
 		ctx.moveTo(this.shape[0].x, this.shape[0].y)
 		for (var i = 1; i < this.shape.length; i++) 
-		{
 			ctx.lineTo(this.shape[i].x, this.shape[i].y);
-		}
+		
 		ctx.closePath();
 		ctx.stroke();
 		ctx.restore();
+
 		//this.drawHitbox(ctx);
 
 	}
